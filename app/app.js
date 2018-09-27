@@ -17,20 +17,19 @@ let radius = 200
 let mfX = 0, mfY = 0
 let widthKoef
 
-setSize()
-document.body.appendChild(canvas)
+const canvasContainer = document.getElementsByClassName("canvas")[0];
+
+setSizeCanvas()
+canvasContainer.appendChild(canvas)
 
 
-
-
-
-for(let i = 0; i < linesNumber; i++) {
+for (let i = 0; i < linesNumber; i++) {
 	lines[i] = []
-	for(let j = 0; j <= verticles; j++) {
+	for (let j = 0; j <= verticles; j++) {
 		let point = {
-			x: Math.cos(j/verticles * Math.PI * 2),
-			y: Math.sin(j/verticles * Math.PI * 2),
-			width: 4
+			x: Math.cos(j / verticles * Math.PI * 2),
+			y: Math.sin(j / verticles * Math.PI * 2),
+			width: 10
 		}
 		point._x = point.x
 		point._y = point.y
@@ -41,17 +40,17 @@ for(let i = 0; i < linesNumber; i++) {
 function update() {
 
 	// Инерция
-	mfX += 0.05*(mouse.x/halfX - mfX)
-	mfY += 0.05*(mouse.y/halfY - mfY)
+	mfX += 0.05 * (mouse.x / halfX - mfX)
+	mfY += 0.05 * (mouse.y / halfY - mfY)
 
-	for(let i = 0; i < linesNumber; i++) {
-		for(let j = 0; j <= verticles; j++) {
-			
+	for (let i = 0; i < linesNumber; i++) {
+		for (let j = 0; j <= verticles; j++) {
+
 			noise = simplex.noise2D(lines[i][j]._x + time * 0.005, lines[i][j]._y + time * 0.005)
-			
-			lines[i][j].x = lines[i][j]._x * radius * (1 - i/20) + noise * radius / 10
-			lines[i][j].y = lines[i][j]._y * radius * (1 - i/20) + noise * radius / 10
-			
+
+			lines[i][j].x = lines[i][j]._x * radius * (1 - i / 20) + noise * radius / 10
+			lines[i][j].y = lines[i][j]._y * radius * (1 - i / 20) + noise * radius / 10
+
 			// Смещение
 			lines[i][j].x = lines[i][j].x - mfX * radius * i / 20
 			lines[i][j].y = lines[i][j].y - mfY * radius * i / 20
@@ -65,8 +64,8 @@ function update() {
 
 function render() {
 	ctx.strokeStyle = '#00ff00';
-	for(let i = 0; i < linesNumber; i++) {
-		for(let j = 1; j <= verticles; j++) {
+	for (let i = 0; i < linesNumber; i++) {
+		for (let j = 1; j <= verticles; j++) {
 			ctx.beginPath()
 			ctx.lineWidth = lines[i][j].width < 1 ? 1 : lines[i][j].width
 			ctx.lineCap = "round"
@@ -83,11 +82,6 @@ function raf() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
 	update()
 	render()
-
-
-
-
-
 	requestAnimationFrame(raf)
 }
 
@@ -100,10 +94,21 @@ function onMouseMove(event) {
 
 document.addEventListener('mousemove', onMouseMove)
 
-
-function setSize() {
-	canvas.width = window.innerWidth
+function setSizeCanvas() {
+	if (window.innerWidth < 920) {
+		canvas.width = window.innerWidth
+		radius = 100
+		linesNumber = 6
+	} else {
+		canvas.width = window.innerWidth / 2
+		radius = 200
+		linesNumber = 10
+	}
 	canvas.height = window.innerHeight
 	halfX = canvas.width / 2
 	halfY = canvas.height / 2
+}
+
+window.onresize = (event) => {
+	setSizeCanvas()
 }
