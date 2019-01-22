@@ -12,12 +12,14 @@
     "src": {
       "base": "./src",
       "styles": "/styles/index.scss",
-      "js": "/js/index.js"
+      "js": "/js/index.js",
+      "img": "/img"
     },
     "build": {
       "base": "dist",
       "styles": "bundle.[name].css",
-      "js": "bundle.[name].js"
+      "js": "bundle.[name].js",
+      "img": "img"
     },
     "pages": [
       {
