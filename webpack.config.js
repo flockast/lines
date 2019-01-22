@@ -11,12 +11,13 @@ module.exports = (env, options) => {
 
     const isDev = options.mode === "development";
 
-    let HtmlWebpackPlugins = [];
+    let htmlWebpackPlugins = [];
+    let copyWebpackPlugins = [];
     let cssUseList = [MiniCssExtractPlugin.loader, `css-loader?sourceMap=${ isDev }&url=false`];
 
     config.pages.forEach(page => {
         for(file in page) {
-            HtmlWebpackPlugins.push(
+            htmlWebpackPlugins.push(
                 new HtmlWebpackPlugin({
                     filename: page[file],
                     template: config.src.base + file,
@@ -53,6 +54,19 @@ module.exports = (env, options) => {
 
     cssUseList.push(`sass-loader?sourceMap=${ isDev }`);
 
+    if(config.build.fonts !== undefined && config.src.fonts)  {
+        copyWebpackPlugins.push({
+            from: config.src.base + config.src.fonts,
+            to: config.build.fonts,
+        })
+    }
+    if(config.build.img !== undefined && config.src.img) {
+        copyWebpackPlugins.push(        {
+            from: config.src.base + config.src.img,
+            to: config.build.img,
+        })
+    }
+
     return {
         entry: [
             config.src.base + config.src.js,
@@ -87,19 +101,10 @@ module.exports = (env, options) => {
         plugins: [
             !isDev ? new OptimizeCSSAssetsPlugin({}) : () => {},
             !isDev ? new CleanWebpackPlugin('dist') : () => {},
-            new CopyWebpackPlugin([
-                {
-                    from: config.src.base + config.src.fonts,
-                    to: config.build.fonts,
-                },
-                {
-                    from: config.src.base + config.src.img,
-                    to: config.build.img,
-                }
-            ]),
+            new CopyWebpackPlugin(copyWebpackPlugins),
             new MiniCssExtractPlugin({
                 filename: config.build.styles
             })
-        ].concat(HtmlWebpackPlugins)
+        ].concat(htmlWebpackPlugins)
     }
 };
