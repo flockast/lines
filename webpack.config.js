@@ -1,98 +1,105 @@
-const path = require('path');
-const webpack = require('webpack');
+const path = require("path");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const autoprefixer = require('autoprefixer');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const {config} = require('./package.json');
 
-// Is the current build a development build
-const IS_DEV = (process.env.NODE_ENV === 'dev');
+module.exports = (env, options) => {
 
-const dirNode = 'node_modules';
-const dirApp = path.join(__dirname, 'app');
-const dirAssets = path.join(__dirname, 'assets');
+    const isDev = options.mode === "development";
 
-const appHtmlTitle = 'Webpack Boilerplate';
+    let HtmlWebpackPlugins = [];
+    let cssUseList = [MiniCssExtractPlugin.loader, `css-loader?sourceMap=${ isDev }&url=false`];
 
-/**
- * Webpack Configuration
- */
-module.exports = {
-    entry: {
-        vendor: [
-            'lodash'
-        ],
-        bundle: path.join(dirApp, 'index')
-    },
-    resolve: {
-        modules: [
-            dirNode,
-            dirApp,
-            dirAssets
-        ]
-    },
-    plugins: [
-        new webpack.DefinePlugin({
-            IS_DEV: IS_DEV
-        }),
+    config.pages.forEach(page => {
+        for(file in page) {
+            HtmlWebpackPlugins.push(
+                new HtmlWebpackPlugin({
+                    filename: page[file],
+                    template: config.src.base + file,
+                    title: `This is ${page[file]}`
+                })
+            )
+        }
+    });
 
-        new HtmlWebpackPlugin({
-            template: path.join(__dirname, 'index.ejs'),
-            title: appHtmlTitle
-        })
-    ],
-    module: {
-        rules: [
-            // BABEL
+    if(!isDev) {
+        cssUseList.push(
             {
-                test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /(node_modules)/,
+                loader: "postcss-loader",
                 options: {
-                    compact: true
+                    plugins: [
+                        autoprefixer({
+                            browsers: ['ie >= 8', 'last 4 version']
+                        })
+                    ],
+                    sourceMap: isDev
                 }
             },
-
-            // STYLES
             {
-                test: /\.css$/,
-                use: [
-                    'style-loader',
-                    {
-                        loader: 'css-loader',
-                        options: {
-                            sourceMap: IS_DEV
-                        }
-                    },
-                ]
+                loader: "clean-css-loader",
+                options: {
+                    compatibility: "ie9",
+                    level: 2,
+                    inline: ["remote"]
+                }
             },
+            'group-css-media-queries-loader',
+        )
+    }
 
-            // CSS / SASS
-            {
-                test: /\.scss/,
-                use: [
-                    'style-loader',
-                    {
-                        loader: 'css-loader',
+    cssUseList.push(`sass-loader?sourceMap=${ isDev }`);
+
+    return {
+        entry: [
+            config.src.base + config.src.js,
+            config.src.base + config.src.styles
+        ],
+        output: {
+            path: path.resolve(__dirname, config.build.base),
+            filename: config.build.js,
+            publicPath: config.publicPath
+        },
+        devServer: {
+            overlay: true
+        },
+        devtool: isDev ? 'source-map' : '',
+        module: {
+            rules: [
+                {
+                    test: /\.js$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'babel-loader',
                         options: {
-                            sourceMap: IS_DEV
-                        }
-                    },
-                    {
-                        loader: 'sass-loader',
-                        options: {
-                            sourceMap: IS_DEV,
-                            includePaths: [dirAssets]
+                            presets: ['@babel/preset-env']
                         }
                     }
-                ]
-            },
-
-            // IMAGES
-            {
-                test: /\.(jpe?g|png|gif)$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[path][name].[ext]'
+                },
+                {test: /\.(sa|sc|c)ss$/, use: cssUseList},
+                {test: /\.ejs$/, loader: "ejs-loader"},
+                {test: /\.svg/, loader: "svg-inline-loader"},
+            ]
+        },
+        plugins: [
+            !isDev ? new OptimizeCSSAssetsPlugin({}) : () => {},
+            !isDev ? new CleanWebpackPlugin('dist') : () => {},
+            new CopyWebpackPlugin([
+                {
+                    from: config.src.base + config.src.fonts,
+                    to: config.build.fonts,
+                },
+                {
+                    from: config.src.base + config.src.img,
+                    to: config.build.img,
                 }
-            }
-        ]
+            ]),
+            new MiniCssExtractPlugin({
+                filename: config.build.styles
+            })
+        ].concat(HtmlWebpackPlugins)
     }
 };
