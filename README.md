@@ -1,4 +1,4 @@
-Boilerplate smile (babel, scss, webpack)
+Flocakst lines demo
 ===========
 
 > Plain webpack 4 boilerplate with Babel and SCSS
