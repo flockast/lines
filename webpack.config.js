@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const autoprefixer = require('autoprefixer');
+const Autoprefixer = require('autoprefixer');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const {config} = require('./package.json');
 
@@ -33,7 +33,7 @@ module.exports = (env, options) => {
                 loader: "postcss-loader",
                 options: {
                     plugins: [
-                        autoprefixer({
+                        Autoprefixer({
                             browsers: ['ie >= 8', 'last 4 version']
                         })
                     ],
