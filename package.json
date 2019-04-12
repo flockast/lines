@@ -24,9 +24,12 @@
     "pages": [
       {
         "/index.ejs": "index.html"
+      },
+      {
+        "/error_404.ejs": "error_404.html"
       }
     ],
-    "publicPath": ""
+    "publicPath": "/"
   },
   "dependencies": {
     "simplex-noise": "^2.4.0"
